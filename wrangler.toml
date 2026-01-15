@@ -1,0 +1,5 @@
+name = "dental-gpsc-2"
+main = "worker.js"
+compatibility_date = "2026-01-15"
+
+# database binding later add karishu
