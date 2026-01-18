@@ -6,7 +6,7 @@ workers_dev = true
 # -------- ENV PLACEHOLDERS --------
 # Set these in Cloudflare dashboard or .dev.vars (local)
 [vars]
-TELEGRAM_BOT_TOKEN = "SET_IN_DASHBOARD"
+TELEGRAM_BOT_TOKEN = "8350086915:AAGtzNoCW-zqJEZlnS8cnEiszDFaaWy3KVM"
 
 # -------- KV (declared but NOT used in Phase-0) --------
 [[kv_namespaces]]
