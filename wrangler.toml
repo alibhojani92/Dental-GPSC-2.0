@@ -1,5 +1,23 @@
-name = "dental-gpsc-2"
-main = "worker.js"
-compatibility_date = "2026-01-15"
+name = "gpsc-dental-bot"
+main = "src/index.js"
+compatibility_date = "2024-12-01"
+workers_dev = true
 
-# database binding later add karishu
+# -------- ENV PLACEHOLDERS --------
+# Set these in Cloudflare dashboard or .dev.vars (local)
+[vars]
+TELEGRAM_BOT_TOKEN = "SET_IN_DASHBOARD"
+
+# -------- KV (declared but NOT used in Phase-0) --------
+[[kv_namespaces]]
+binding = "KV"
+id = "1a154163dd614f8da7d889b5aa04701b"
+
+# -------- D1 (declared but NOT used in Phase-0) --------
+[[d1_databases]]
+binding = "DB"
+database_id = "5d374e7d-2d0f-4c7e-87ae-aa2e2f949515"
+
+# -------- CRON (declared but NOT used in Phase-0) --------
+[triggers]
+crons = []
