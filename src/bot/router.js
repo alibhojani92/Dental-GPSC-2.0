@@ -1,3 +1,4 @@
+import { studyHandler } from "../handlers/study.handler.js";
 import { isValidCallback } from "./validator.js";
 import { sendMessage, editMessage } from "../services/message.service.js";
 import { startHandler } from "../handlers/start.handler.js";
