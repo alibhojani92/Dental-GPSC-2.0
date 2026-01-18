@@ -2,6 +2,7 @@ import { isValidCallback } from "./validator.js";
 import { sendMessage, editMessage } from "../services/message.service.js";
 import { startHandler } from "../handlers/start.handler.js";
 import { studyHandler } from "../handlers/study.handler.js";
+import { testStartHandler, answerHandler } from "../handlers/test.handler.js";
 
 export async function routeUpdate(update, env) {
   // ---------- TEXT MESSAGE ----------
@@ -24,6 +25,14 @@ export async function routeUpdate(update, env) {
     const messageId = cb.message.message_id;
     const userId = cb.from.id;
     const data = cb.data;
+
+    if (data === "MENU_TEST") {
+  return testStartHandler(chatId, userId, env);
+}
+
+if (data.startsWith("ANS_")) {
+  return answerHandler(chatId, userId, data.replace("ANS_", ""), env);
+}
 
     if (!isValidCallback(data)) {
       return editMessage(chatId, messageId, "⚠️ Invalid action.", env);
