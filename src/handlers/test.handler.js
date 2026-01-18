@@ -5,6 +5,23 @@ import {
 } from "../engine/test.engine.js";
 import { getMotivation } from "../engine/motivation.engine.js";
 
+export async function answerHandler(chatId, userId, answer, env) {
+  // 🔥 HARD DEBUG (TEMP)
+  await fetch(
+    `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: `🔥 ANSWER HANDLER HIT\nAnswer: ${answer}`,
+      }),
+    }
+  );
+
+  // ⛔ STOP HERE TEMPORARILY
+  return;
+}
 async function send(chatId, text, env, markup = null) {
   const url = `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`;
   await fetch(url, {
