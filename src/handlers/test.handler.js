@@ -5,101 +5,114 @@ import {
 } from "../engine/test.engine.js";
 import { getMotivation } from "../engine/motivation.engine.js";
 
-export async function answerHandler(chatId, userId, answer, env) {
-  // 🔥 HARD DEBUG (TEMP)
-  await fetch(
-    `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: `🔥 ANSWER HANDLER HIT\nAnswer: ${answer}`,
-      }),
-    }
-  );
-
-  // ⛔ STOP HERE TEMPORARILY
-  return;
-}
 async function send(chatId, text, env, markup = null) {
-  const url = `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-  await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text,
-      reply_markup: markup,
-    }),
-  });
+  try {
+    await fetch(
+      `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text,
+          reply_markup: markup,
+        }),
+      }
+    );
+  } catch (e) {
+    console.error("send failed", e);
+  }
 }
 
+/* ===============================
+ * START TEST
+ * =============================== */
 export async function testStartHandler(chatId, userId, env) {
-  // Placeholder MCQs (real fetch comes later)
   const questions = [
     {
       id: 1,
       question: "Dentigerous cyst is associated with?",
-      options: ["Impacted tooth", "Deciduous tooth", "Exfoliated tooth", "Supernumerary tooth"],
+      options: [
+        "Impacted tooth",
+        "Deciduous tooth",
+        "Exfoliated tooth",
+        "Supernumerary tooth",
+      ],
       correct_option: "Impacted tooth",
-      explanation: "It forms around the crown of an unerupted tooth.",
+      explanation:
+        "Dentigerous cyst develops around the crown of an unerupted tooth.",
     },
   ];
 
   const res = await startTest(env.KV, userId, "DAILY", questions);
+
   if (res.alreadyRunning) {
-    return send(chatId, "📝 Test already running.", env);
+    await send(chatId, "📝 Test already running.", env);
+    return;
   }
 
-  return send(
+  const q = questions[0];
+
+  await send(
     chatId,
-    `📝 Test Started\n\nQ1. ${questions[0].question}${getMotivation("START")}`,
+    `📝 Test Started\n\nQ1. ${q.question}${getMotivation("START")}`,
     env,
     {
-      inline_keyboard: questions[0].options.map((o) => [
+      inline_keyboard: q.options.map((o) => [
         { text: o, callback_data: `ANS_${o}` },
       ]),
     }
   );
 }
 
+/* ===============================
+ * ANSWER HANDLER (ONLY ONE!)
+ * =============================== */
 export async function answerHandler(chatId, userId, answer, env) {
   const res = await recordAnswer(env.KV, userId, answer);
+
   if (!res) {
-    return send(chatId, "⚠️ No active test.", env);
+    await send(chatId, "⚠️ No active test.", env);
+    return;
   }
 
-  const last = res.test.results.at(-1);
+  const test = res.test;
+  const last = test.results[test.results.length - 1];
+  const q = test.questions[test.index - 1];
+
   let text = "";
 
   if (last.is_time_up) {
     text =
-      `⏱️ Time Over\n\nCorrect: ${res.test.questions[res.test.index - 1].correct_option}` +
-      `\n🧠 Explanation: ${res.test.questions[res.test.index - 1].explanation}` +
+      `⏱️ Time Over\n\nCorrect: ${q.correct_option}\n🧠 Explanation: ${q.explanation}` +
       getMotivation("TIMEUP");
   } else if (last.is_correct) {
     text =
-      `✅ Correct Answer\n\n🧠 Explanation: ${res.test.questions[res.test.index - 1].explanation}` +
+      `✅ Correct Answer\n\n🧠 Explanation: ${q.explanation}` +
       getMotivation("CORRECT");
   } else {
     text =
-      `❌ Wrong Answer\n\nCorrect: ${res.test.questions[res.test.index - 1].correct_option}` +
-      `\n🧠 Explanation: ${res.test.questions[res.test.index - 1].explanation}` +
+      `❌ Wrong Answer\n\nCorrect: ${q.correct_option}\n🧠 Explanation: ${q.explanation}` +
       getMotivation("WRONG");
   }
 
   if (res.finished) {
-    return send(chatId, text + "\n\n🏁 Test Completed" + getMotivation("END"), env);
+    await send(
+      chatId,
+      text + "\n\n🏁 Test Completed" + getMotivation("END"),
+      env
+    );
+    return;
   }
 
-  const q = res.test.questions[res.test.index];
-  return send(
+  const nextQ = test.questions[test.index];
+
+  await send(
     chatId,
-    text + `\n\nQ${res.test.index + 1}. ${q.question}`,
+    text + `\n\nQ${test.index + 1}. ${nextQ.question}`,
     env,
     {
-      inline_keyboard: q.options.map((o) => [
+      inline_keyboard: nextQ.options.map((o) => [
         { text: o, callback_data: `ANS_${o}` },
       ]),
     }
