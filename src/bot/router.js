@@ -39,6 +39,6 @@ export async function routeUpdate(update, env) {
     };
 
     const text = replyMap[data] || "Feature will be activated in next phase.";
-    return editMessage(chatId, messageId, text, env);
+return editMessage(chatId, messageId, text, env);
   }
       }
