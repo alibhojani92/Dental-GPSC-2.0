@@ -43,3 +43,11 @@ export async function routeUpdate(update, env) {
 return editMessage(chatId, messageId, text, env);
   }
       }
+// PHASE-3 wiring
+if (data === "MENU_STUDY") {
+  return studyHandler(chatId, cb.from.id, env);
+}
+
+// PHASE-1 placeholders remain for others
+const text = replyMap[data] || "Feature will be activated in next phase.";
+return editMessage(chatId, messageId, text, env);
