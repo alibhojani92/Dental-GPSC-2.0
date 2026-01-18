@@ -19,18 +19,13 @@ export async function routeUpdate(update, env) {
    * =============================== */
   if (update.message) {
     const chatId = update.message.chat.id;
-    const userId = update.message.from.id;
     const text = update.message.text || "";
 
     if (text === "/start") {
       return startHandler(chatId, env);
     }
 
-    return sendMessage(
-      chatId,
-      "Use /start to open the menu.",
-      env
-    );
+    return sendMessage(chatId, "Use /start to open the menu.", env);
   }
 
   /* ===============================
@@ -43,14 +38,19 @@ export async function routeUpdate(update, env) {
     const userId = cb.from.id;
     const data = cb.data;
 
-    /* ---------- BASIC VALIDATION ---------- */
-    if (!isValidCallback(data) && !data.startsWith("ANS_")) {
-      return editMessage(
-        chatId,
-        messageId,
-        "⚠️ Invalid action.",
-        env
-      );
+    /* ===============================
+     * 🔥 PHASE-4 : ANSWERS FIRST
+     * =============================== */
+    if (data.startsWith("ANS_")) {
+      const answer = data.replace("ANS_", "");
+      return answerHandler(chatId, userId, answer, env);
+    }
+
+    /* ===============================
+     * VALIDATE NON-ANSWER CALLBACKS
+     * =============================== */
+    if (!isValidCallback(data)) {
+      return editMessage(chatId, messageId, "⚠️ Invalid action.", env);
     }
 
     /* ===============================
@@ -69,11 +69,6 @@ export async function routeUpdate(update, env) {
      * =============================== */
     if (data === "MENU_TEST") {
       return testStartHandler(chatId, userId, env);
-    }
-
-    if (data.startsWith("ANS_")) {
-      const answer = data.replace("ANS_", "");
-      return answerHandler(chatId, userId, answer, env);
     }
 
     /* ===============================
@@ -100,4 +95,4 @@ export async function routeUpdate(update, env) {
 
     return editMessage(chatId, messageId, text, env);
   }
-      }
+                       }
