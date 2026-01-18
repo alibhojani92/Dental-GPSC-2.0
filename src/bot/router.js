@@ -1,12 +1,11 @@
-import { isValidCallback } from "./validator.js";
 import { sendMessage, editMessage } from "../services/message.service.js";
-
 import { startHandler } from "../handlers/start.handler.js";
 import { studyHandler, stopStudyHandler } from "../handlers/study.handler.js";
 import {
   testStartHandler,
   answerHandler,
 } from "../handlers/test.handler.js";
+import { isValidCallback } from "./validator.js";
 
 export async function routeUpdate(update, env) {
   /* ===============================
@@ -17,10 +16,12 @@ export async function routeUpdate(update, env) {
     const text = update.message.text || "";
 
     if (text === "/start") {
-      return startHandler(chatId, env);
+      await startHandler(chatId, env);
+      return;
     }
 
-    return sendMessage(chatId, "Use /start to open the menu.", env);
+    await sendMessage(chatId, "Use /start to open the menu.", env);
+    return;
   }
 
   /* ===============================
@@ -33,32 +34,37 @@ export async function routeUpdate(update, env) {
     const userId = cb.from.id;
     const data = cb.data;
 
-    /* 🔥 ANSWERS FIRST (PHASE-4) */
-    if (data.startsWith("ANS_")) {
-      const answer = data.replace("ANS_", "");
-      return answerHandler(chatId, userId, answer, env);
+    /* 🔥 ABSOLUTE FIRST: ANSWERS */
+    if (data && data.startsWith("ANS_")) {
+      const answer = data.slice(4);
+      await answerHandler(chatId, userId, answer, env);
+      return;
     }
 
-    /* VALIDATE OTHER CALLBACKS */
+    /* VALIDATE ONLY NON-ANSWER CALLBACKS */
     if (!isValidCallback(data)) {
-      return editMessage(chatId, messageId, "⚠️ Invalid action.", env);
+      await editMessage(chatId, messageId, "⚠️ Invalid action.", env);
+      return;
     }
 
-    /* PHASE-3 STUDY */
+    /* STUDY */
     if (data === "MENU_STUDY") {
-      return studyHandler(chatId, userId, env);
+      await studyHandler(chatId, userId, env);
+      return;
     }
 
     if (data === "STUDY_STOP") {
-      return stopStudyHandler(chatId, userId, env);
+      await stopStudyHandler(chatId, userId, env);
+      return;
     }
 
-    /* PHASE-4 TEST */
+    /* TEST */
     if (data === "MENU_TEST") {
-      return testStartHandler(chatId, userId, env);
+      await testStartHandler(chatId, userId, env);
+      return;
     }
 
-    /* FUTURE PLACEHOLDERS */
+    /* PLACEHOLDERS */
     const placeholders = {
       MENU_PERFORMANCE:
         "📊 Performance\n\nFeature will be activated in next phase.",
@@ -74,12 +80,12 @@ export async function routeUpdate(update, env) {
         "ℹ️ Help\n\nFeature will be activated in next phase.",
     };
 
-    return editMessage(
+    await editMessage(
       chatId,
       messageId,
-      placeholders[data] ||
-        "Feature will be activated in next phase.",
+      placeholders[data] || "Feature will be activated in next phase.",
       env
     );
+    return;
   }
-  }
+      }
